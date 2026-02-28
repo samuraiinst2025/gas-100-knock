@@ -50,7 +50,7 @@ const App = () => {
             <main className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
 
                 {/* Left Side: Problem List */}
-                <div className="w-full lg:w-1/2 flex flex-col gap-6">
+                <div className={`w-full lg:w-1/2 flex flex-col gap-6 ${selectedProblem ? 'hidden lg:flex' : 'flex'}`}>
                     <div className="glass p-4 rounded-2xl flex items-center gap-3">
                         <Search className="text-slate-500" size={20} />
                         <input
@@ -81,16 +81,25 @@ const App = () => {
                             <motion.div
                                 layout
                                 key={p.id}
-                                onClick={() => setSelectedProblem(p)}
-                                className={`p-4 rounded-2xl cursor-pointer transition-all glass hover-glow ${selectedProblem?.id === p.id ? 'border-blue-500 bg-blue-500/10' : ''
+                                onClick={() => {
+                                    setSelectedProblem(p);
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className={`p-4 rounded-2xl cursor-pointer transition-all glass hover-glow relative overflow-hidden ${selectedProblem?.id === p.id ? 'ring-2 ring-blue-500 bg-blue-500/10' : ''
                                     }`}
                             >
-                                <div className="flex justify-between items-start">
+                                {selectedProblem?.id === p.id && (
+                                    <motion.div
+                                        layoutId="active-glow"
+                                        className="absolute inset-0 bg-blue-500/5 pointer-events-none"
+                                    />
+                                )}
+                                <div className="flex justify-between items-start relative z-10">
                                     <div>
                                         <span className="text-xs font-mono text-blue-400 mb-1 block">Q.{p.id} [{p.category}]</span>
                                         <h3 className="font-semibold">{p.title}</h3>
                                     </div>
-                                    <ChevronRight size={18} className="text-slate-600" />
+                                    <ChevronRight size={18} className={`transition-transform ${selectedProblem?.id === p.id ? 'rotate-90 text-blue-400' : 'text-slate-600'}`} />
                                 </div>
                             </motion.div>
                         ))}
@@ -98,57 +107,69 @@ const App = () => {
                 </div>
 
                 {/* Right Side: Problem Detail */}
-                <div className="w-full lg:w-1/2">
+                <div className={`w-full lg:w-1/2 ${selectedProblem ? 'flex' : 'hidden lg:flex'}`}>
                     <AnimatePresence mode="wait">
                         {selectedProblem ? (
                             <motion.div
                                 key={selectedProblem.id}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="glass p-8 rounded-3xl h-full sticky top-8"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="glass p-6 md:p-8 rounded-3xl w-full sticky top-8"
                             >
-                                <div className="flex items-center gap-2 mb-6">
-                                    <Terminal size={24} className="text-purple-400" />
-                                    <h2 className="text-2xl font-bold">問題解析</h2>
+                                <button
+                                    onClick={() => setSelectedProblem(null)}
+                                    className="lg:hidden mb-6 flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                                >
+                                    <ChevronRight size={20} className="rotate-180" />
+                                    リストに戻る
+                                </button>
+
+                                <div className="flex items-center gap-2 mb-6 text-purple-400">
+                                    <Terminal size={24} />
+                                    <h2 className="text-2xl font-bold text-white">問題解析</h2>
                                 </div>
 
                                 <div className="mb-8">
                                     <span className="text-sm text-blue-400 font-mono mb-2 block tracking-widest uppercase">Overview</span>
                                     <h3 className="text-xl font-bold mb-4">{selectedProblem.title}</h3>
-                                    <p className="text-slate-300 leading-relaxed mb-6">
-                                        {selectedProblem.description}
-                                    </p>
+                                    <div className="bg-slate-900/50 p-4 rounded-2xl border border-white/5">
+                                        <p className="text-slate-300 leading-relaxed">
+                                            {selectedProblem.description}
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-6">
                                     <div>
                                         <span className="text-sm text-purple-400 font-mono mb-2 block tracking-widest uppercase">Start Template</span>
-                                        <div className="rounded-xl overflow-hidden border border-white/5">
-                                            <SyntaxHighlighter language="javascript" style={atomDark} customStyle={{ margin: 0 }}>
+                                        <div className="rounded-xl overflow-hidden border border-white/5 shadow-2xl">
+                                            <SyntaxHighlighter
+                                                language="javascript"
+                                                style={atomDark}
+                                                customStyle={{ margin: 0, padding: '1.5rem', background: '#0d0d0f' }}
+                                            >
                                                 {selectedProblem.sample}
                                             </SyntaxHighlighter>
                                         </div>
                                     </div>
 
-                                    <motion.div
-                                        initial={false}
-                                        className="overflow-hidden"
-                                    >
+                                    <div className="pt-4">
                                         <button
-                                            onClick={() => alert('解答は実装中の機能です。')}
-                                            className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 font-bold hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
+                                            onClick={() => alert('解答は準備中です。頑張って自力で解いてみましょう！')}
+                                            className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 font-bold hover:from-blue-500 hover:to-purple-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/40"
                                         >
                                             <CheckCircle2 size={20} />
-                                            解答を見る
+                                            解答・解説を確認
                                         </button>
-                                    </motion.div>
+                                    </div>
                                 </div>
                             </motion.div>
                         ) : (
-                            <div className="glass p-12 rounded-3xl h-full flex flex-col items-center justify-center text-center text-slate-500 border-dashed border-2">
+                            <div className="glass p-12 rounded-3xl w-full min-h-[400px] flex flex-col items-center justify-center text-center text-slate-500 border-dashed border-2 border-white/10">
                                 <Code2 size={48} className="mb-4 opacity-20" />
-                                <p>左側のリストから問題を選択して挑戦を開始しましょう</p>
+                                <p className="text-lg">問題を選択して詳細を確認しましょう</p>
+                                <p className="text-sm mt-2 opacity-60">100問の挑戦がここから始まります</p>
                             </div>
                         )}
                     </AnimatePresence>
